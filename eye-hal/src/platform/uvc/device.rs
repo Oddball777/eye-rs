@@ -182,7 +182,14 @@ impl<'a> UvcHandle<'a> {
         let dev_ptr = &*dev as *const uvc::Device;
         let dev_ref = unsafe { &*dev_ptr as &uvc::Device };
 
-        let handle = Box::new(dev_ref.open()?);
+        let handle = match dev_ref.open() {
+            Ok(h) => Box::new(h),
+            Err(e) => {
+                println!("Failed to open device: {}", e);
+                return Err(e);
+            }
+        };
+
 
         Ok(UvcHandle {
             handle,
