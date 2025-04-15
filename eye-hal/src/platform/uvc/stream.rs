@@ -51,7 +51,7 @@ impl<'a, 'b> Stream<'b> for Handle<'a> {
     type Item = Result<&'b [u8]>;
 
     fn next(&'b mut self) -> Option<Self::Item> {
-        let frame_result = self.rx.recv().ok()??;
+        let frame_result = self.rx.recv().ok()?;
 
         match frame_result {
             Ok(frame) => {
