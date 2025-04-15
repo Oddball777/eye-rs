@@ -6,6 +6,7 @@ use crate::traits::Stream;
 
 pub struct Handle<'a> {
     rx: mpsc::Receiver<uvc::Result<uvc::Frame>>,
+    last_frame: Option<uvc::Frame>,
 
     // these are required to keep the frame callback alive
     _stream: uvc::ActiveStream<'a, mpsc::SyncSender<uvc::Result<uvc::Frame>>>,
@@ -38,6 +39,7 @@ impl<'a> Handle<'a> {
 
         Ok(Handle {
             rx,
+            last_frame: None,
             _stream: stream,
             _stream_handle: stream_handle,
             _dev_handle: dev_handle,
@@ -49,15 +51,15 @@ impl<'a, 'b> Stream<'b> for Handle<'a> {
     type Item = Result<&'b [u8]>;
 
     fn next(&'b mut self) -> Option<Self::Item> {
-        let frame = self.rx.recv().unwrap();
-        let pixels = match &frame {
-            Ok(frame) => frame.to_bytes(),
-            Err(_) => {
-                // The format conversion failed. Pretend the stream died.
-                return None;
-            }
-        };
+        let frame_result = self.rx.recv().ok()??;
 
-        Some(Ok(&pixels))
+        match frame_result {
+            Ok(frame) => {
+                self.last_frame = Some(frame);
+                let stored = self.last_frame.as_ref().unwrap();
+                Some(Ok(stored.to_bytes()))
+            }
+            Err(_) => None,
+        }
     }
 }
