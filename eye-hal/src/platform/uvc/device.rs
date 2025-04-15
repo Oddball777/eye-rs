@@ -158,7 +158,7 @@ impl<'a> UvcHandle<'a> {
         
         // Print them out
         println!("Looking for device at {}:{}", bus_number, device_address);
-        for dev in &all_devices {
+        for dev in all_devices.iter() {
             println!(
                 "  Found device: bus={} addr={}",
                 dev.bus_number(),
@@ -175,6 +175,7 @@ impl<'a> UvcHandle<'a> {
         } else {
             return Err(uvc::Error::NotFound);
         };
+
 
         let dev_ptr = &*dev as *const uvc::Device;
         let dev_ref = unsafe { &*dev_ptr as &uvc::Device };
