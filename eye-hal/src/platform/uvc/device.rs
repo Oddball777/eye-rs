@@ -150,16 +150,32 @@ impl<'a> UvcHandle<'a> {
     pub fn new(bus_number: u8, device_address: u8) -> uvc::Result<Self> {
         let ctx = Box::new(uvc::Context::new()?);
         let ctx_ptr = &*ctx as *const uvc::Context;
+
         let ctx_ref = unsafe { &*ctx_ptr as &uvc::Context };
 
-        let dev =
-            if let Some(dev) = ctx_ref.devices()?.into_iter().find(|dev| {
-                dev.bus_number() == bus_number && dev.device_address() == device_address
-            }) {
-                Box::new(dev)
-            } else {
-                return Err(uvc::Error::NotFound);
-            };
+        // Get all devices first
+        let all_devices = ctx_ref.devices()?;
+        
+        // Print them out
+        println!("Looking for device at {}:{}", bus_number, device_address);
+        for dev in &all_devices {
+            println!(
+                "  Found device: bus={} addr={}",
+                dev.bus_number(),
+                dev.device_address(),
+            );
+        }
+        
+        // Try to find the matching device
+        let dev = if let Some(dev) = all_devices
+            .into_iter()
+            .find(|dev| dev.bus_number() == bus_number && dev.device_address() == device_address)
+        {
+            Box::new(dev)
+        } else {
+            return Err(uvc::Error::NotFound);
+        };
+
         let dev_ptr = &*dev as *const uvc::Device;
         let dev_ref = unsafe { &*dev_ptr as &uvc::Device };
 
