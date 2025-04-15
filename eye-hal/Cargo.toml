@@ -15,7 +15,7 @@ bitflags = "2.5.0"
 v4l = "0.14.0"
 
 [target.'cfg(target_os="windows")'.dependencies]
-uvc = { git = "https://github.com/l1npengtul/libuvc-rs.git", rev = "3d76b71" }
+uvc = { git = "https://github.com/l1npengtul/libuvc-rs.git", rev = "3d76b71", default-features = false, features = ["vendor"] }
 
 [target.'cfg(target_os="macos")'.dependencies]
 openpnp_capture = { version = "0.2.4" }
